@@ -1,0 +1,12 @@
+{% extends "layout.html"  %}
+{% block content %}
+<h1>Your Booklist</h1>
+<body>
+{% for table in tables %}
+    {{ table|safe }}
+{% endfor %}
+</body>
+<a class="btn btn-outline-info mt-1 mb-1" href="{{ url_for('booklist.upload_booklist') }}">Upload A New Book List</a>
+{% endblock content %}
+
+

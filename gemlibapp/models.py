@@ -4,6 +4,13 @@ from flask import current_app
 from flask_login import UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
+'''
+During development, if you need to recreate database...
+>>> from gemlibapp import create_app
+>>> from gemlibapp import db
+>>> db.create_all(app=create_app())
+'''
+
 
 # decorator lets login_manager package find the user in the session
 @login_manager.user_loader
@@ -20,7 +27,8 @@ class User(db.Model, UserMixin):
     # lazy loads the data as necessary in one go
     # we would not see this "booklist" in a SQL viewer. it's making a query here
     # BookList is capitalized because we are referencing the BookList class not a table
-    booklist = db.relationship('BookList', backref='username', lazy=True)
+    # user.booklist should return their books -- links to BookList table
+    booklists = db.relationship('BookList', backref='owner', lazy=True)
 
     def __repr__(self):
         # how our object is printed when printed out
@@ -42,13 +50,17 @@ class User(db.Model, UserMixin):
 
 
 class BookList(db.Model):
+    """ SQLALCHEMY automatically creates the table name by
+     converting adding an underscore between
+     camel case and making it all lower"""
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    count_total = db.Column(db.Integer, nullable=False)
-    count_available = db.Column(db.Integer, nullable=False)
+    # count_total = db.Column(db.Integer, nullable=False)
+    # count_available = db.Column(db.Integer, nullable=False)
+    available = db.Column(db.Boolean, nullable=False)
     date_borrowed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     # user.id is lower case because we are referencing the table.column name
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f"Books('{self.title}', '{self.count_total}', '{self.count_available}', '{self.date_borrowed}')"
+        return f"Books('{self.title}', '{self.available}', '{self.date_borrowed}', '{self.user_id}')"

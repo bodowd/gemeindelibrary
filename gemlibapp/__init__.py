@@ -25,10 +25,12 @@ def create_app(config_class=Config):
     from gemlibapp.users.routes import users  # users is the instance of the Blueprint class
     from gemlibapp.main.routes import main
     from gemlibapp.errors.handlers import errors
+    from gemlibapp.booklist.routes import booklist
 
     app.register_blueprint(users)
     app.register_blueprint(main)
     app.register_blueprint(errors)
+    app.register_blueprint(booklist)
 
     return app
 
