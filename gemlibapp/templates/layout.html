@@ -35,6 +35,9 @@
                 <div class="navbar-nav mr-auto">
                     <a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
                     <a class="nav-item nav-link" href="{{ url_for('main.about') }}">About</a>
+                    {% if current_user.is_authenticated %}
+                        <a class="nav-item nav-link" href="{{ url_for('booklist.upload_booklist') }}">Upload Booklist</a>
+                    {% endif %}
                 </div>
                 <!-- Navbar Right Side -->
                 <div class="navbar-nav">
@@ -74,6 +77,7 @@
                     {% if current_user.is_authenticated %}
                         <a class="list-group-item list-group-item-light nav-item nav-link" href="{{ url_for('users.account') }}">Account</a>
                         <a class="list-group-item list-group-item-light nav-item nav-link" href="{{ url_for('users.logout') }}">Logout</a>
+                        <a class="list-group-item list-group-item-light nav-item nav-link" href="{{ url_for('booklist.upload_booklist') }}">Upload Booklist</a>
                     {% else %}
                         <a class="list-group-item list-group-item-light nav-item nav-link" href="{{ url_for('users.login') }}">Login</a>
                         <a class="list-group-item list-group-item-light nav-item nav-link" href="{{ url_for('users.register') }}">Register</a>

@@ -82,3 +82,8 @@ def view_booklist(username):
     return render_template('view_booklist.html', title='Home',
                            tables=[df.to_html(classes='data', header='true')])
 
+
+@booklist.route('/booklist/<string:username>/checkout', methods=['GET', 'POST'])
+@login_required
+def checkout_book():
+    pass
