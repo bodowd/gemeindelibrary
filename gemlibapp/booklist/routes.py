@@ -88,5 +88,7 @@ def view_booklist(username):
 
 @booklist.route('/booklist/<string:username>/checkout', methods=['GET', 'POST'])
 @login_required
-def checkout_book():
-    pass
+def checkout_book(username):
+    user = User.query.filter_by(username=username).first_or_404()
+
+    return render_template('checkout_book.html', title='Checkout Book')
