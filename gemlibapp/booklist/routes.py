@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request
+from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
 from flask_login import current_user, login_required
 from gemlibapp import db, bcrypt
 from gemlibapp.models import BookList, User
@@ -63,6 +63,8 @@ def update_booklist():
 @login_required
 def view_booklist(username):
     user = User.query.filter_by(username=username).first_or_404()
+    if user != current_user:
+        abort(403)
     booklist = BookList.query.filter_by(owner=user).all()
     # df = pd.DataFrame(booklist)
 
@@ -76,9 +78,10 @@ def view_booklist(username):
         booklist_dict['Title'].append(book.title)
         booklist_dict['Available'].append(book.available)
         booklist_dict['Date Borrowed'].append(book.date_borrowed)
-        booklist_dict['Username'].append(user.username)
+        booklist_dict['Username'].append(book.owner.username)
 
     df = pd.DataFrame.from_dict(booklist_dict)
+
     return render_template('view_booklist.html', title='Home',
                            tables=[df.to_html(classes='data', header='true')])
 
