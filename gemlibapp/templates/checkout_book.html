@@ -1,7 +1,6 @@
 {% extends "layout.html"  %}
 {% block content %}
 <h1>Checkout a book</h1>
-<p> Add a form here. Drop Down Menu? Type in the book? Autocomplete?</p>
 <form method="POST" action="" enctype="multipart/form-data"> <!-- REMEMBER multipart/form-data for some reason -->
     <!-- hidden_tag adds a csf token to protect from certain attacks -->
     {{ form.hidden_tag() }}

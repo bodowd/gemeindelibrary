@@ -9,6 +9,7 @@
     </body>
     <a class="btn btn-outline-info mt-1 mb-1" href="{{ url_for('booklist.upload_booklist') }}">Upload A New Book List</a>
     <a class="btn btn-outline-info mt-1 mb-1" href="{{ url_for('booklist.checkout_book', username=current_user.username)}}">Checkout A Book</a>
+    <a class="btn btn-outline-info mt-1 mb-1" href="{{ url_for('booklist.return_book', username=current_user.username)}}">Return A Book</a>
 
 
 </div>

@@ -61,11 +61,13 @@ class BookList(db.Model):
     available = db.Column(db.Boolean, nullable=False)
     # user.id is lower case because we are referencing the table.column name
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    borrower = db.Column(db.String(100), nullable=False, default='Nobody')
+    borrower = db.Column(db.String(100), nullable=True)
     # unique=False person may borrow multiple books
-    borrower_email = db.Column(db.String(120), unique=False, nullable=False, default='Nobody')
-    date_borrowed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date())
-    date_due = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date() + timedelta(days=30))
+    borrower_email = db.Column(db.String(120), unique=False, nullable=True)
+    # date_borrowed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date())
+    date_borrowed = db.Column(db.DateTime, nullable=True)
+    date_due = db.Column(db.DateTime, nullable=True)
+    # date_due = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date() + timedelta(days=30))
 
     def __repr__(self):
         return f"Books('{self.title}', '{self.available}', '{self.date_borrowed}', '{self.user_id}')"

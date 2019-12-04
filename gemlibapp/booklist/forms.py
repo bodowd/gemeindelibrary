@@ -33,3 +33,8 @@ class CheckoutBookForm(FlaskForm):
     borrower = StringField('Borrower', validators=[DataRequired()])
     borrower_email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Checkout Book')
+
+
+class ReturnBookForm(FlaskForm):
+   title = SelectField('Title', coerce=str)
+   submit = SubmitField('Return Book')

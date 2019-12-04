@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, url_for, flash, redirect, request,
 from flask_login import current_user, login_required
 from gemlibapp import db, bcrypt
 from gemlibapp.models import BookList, User
-from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm
+from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm
 from gemlibapp.booklist.utils import booklist_to_df
 import numpy as np
 import pandas as pd
@@ -111,7 +111,7 @@ def checkout_book(username):
 
     # Drop down menu
     # needs to receive a tuple. I don't know why.
-    form.title.choices = [(book.title, book.title) for book in booklist]
+    form.title.choices = [(book.title, book.title) for book in booklist if book.available]
 
     if form.validate_on_submit():
         book = BookList.query.filter_by(title=form.title.data).first_or_404()
@@ -121,16 +121,38 @@ def checkout_book(username):
         book.date_borrowed = datetime.utcnow().date()
         book.date_due = book.date_borrowed + timedelta(days=30)
         db.session.commit()
+
         flash(f'{book.title} has been checked out by {book.borrower}!', 'success')
         return redirect(url_for('main.home'))
+
     return render_template('checkout_book.html', title='Checkout Book', form=form)
 
 
 @booklist.route('/booklist/<string:username>/return', methods=['GET', 'POST'])
 @login_required
 def return_book(username):
-    pass
+    user = User.query.filter_by(username=username).first_or_404()
+    if user != current_user:
+        abort(403)
+    booklist = BookList.query.filter_by(owner=user).all()
+
+    form = ReturnBookForm()
+
     # only populate the form with Books that are available=False
-    # return render_template('return_book.html', title='Book Return', form=form)
+    form.title.choices = [(book.title, book.title) for book in booklist if not book.available]
+
+    if form.validate_on_submit():
+        book = BookList.query.filter_by(title=form.title.data).first_or_404()
+        book.borrower = None
+        book.borrower_email = None
+        book.available = True
+        book.date_borrowed = None
+        book.date_due = None
+        db.session.commit()
+
+        flash(f'{book.title} has been returned.', 'success')
+        return redirect(url_for('main.home'))
+
+    return render_template('return_book.html', title='Book Return', form=form)
 
 
