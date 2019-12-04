@@ -2,6 +2,47 @@
 {% block content %}
 <h1>Checkout a book</h1>
 <p> Add a form here. Drop Down Menu? Type in the book? Autocomplete?</p>
+<form method="POST" action="" enctype="multipart/form-data"> <!-- REMEMBER multipart/form-data for some reason -->
+    <!-- hidden_tag adds a csf token to protect from certain attacks -->
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+        {{ form.title }}
+    </div>
+    <div class="form-group">
+        {{ form.borrower.label(class="form-control-label") }}
+
+        {% if form.borrower.errors %}
+        {{ form.borrower(class="form-control form-control-lg is-invalid") }}
+        <div class="invalid-feedback">
+            {% for error in form.borrower.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+        </div>
+        {% else %}
+        {{ form.borrower(class="form-control form-control-lg") }}
+        {% endif %}
+    </div>
+    <div class="form-group">
+        {{ form.borrower_email.label(class="form-control-label") }}
+
+        {% if form.borrower_email.errors %}
+        {{ form.borrower_email(class="form-control form-control-lg is-invalid") }}
+        <div class="invalid-feedback">
+            {% for error in form.borrower_email.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+        </div>
+        {% else %}
+        {{ form.borrower_email(class="form-control form-control-lg") }}
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        {{ form.submit(class="btn btn-outline-info") }}
+    </div>
+</form>
+
 {% endblock content %}
 
 

@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import SubmitField
-from wtforms.validators import DataRequired
+from wtforms import SubmitField, SelectField, StringField
+from wtforms.validators import DataRequired, Email
 
 
 class BookListForm(FlaskForm):
@@ -26,3 +26,10 @@ class UpdateBookListForm(FlaskForm):
                               validators=[DataRequired(), FileAllowed(allowed_ext)])
     submit = SubmitField('Update Book List')
 
+
+class CheckoutBookForm(FlaskForm):
+    # coerce to str so that the returned value in form.title.data is the book title
+    title = SelectField('Title', coerce=str)
+    borrower = StringField('Borrower', validators=[DataRequired()])
+    borrower_email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Checkout Book')

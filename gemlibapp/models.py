@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from gemlibapp import db, login_manager
 from flask import current_app
 from flask_login import UserMixin
@@ -50,17 +50,22 @@ class User(db.Model, UserMixin):
 
 
 class BookList(db.Model):
-    """ SQLALCHEMY automatically creates the table name by
+    """
+     SQLALCHEMY automatically creates the table name by
      converting adding an underscore between
-     camel case and making it all lower"""
+     camel case and making it all lower
+     """
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    # count_total = db.Column(db.Integer, nullable=False)
-    # count_available = db.Column(db.Integer, nullable=False)
     available = db.Column(db.Boolean, nullable=False)
-    date_borrowed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     # user.id is lower case because we are referencing the table.column name
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    borrower = db.Column(db.String(100), nullable=False, default='Nobody')
+    # unique=False person may borrow multiple books
+    borrower_email = db.Column(db.String(120), unique=False, nullable=False, default='Nobody')
+    date_borrowed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date())
+    date_due = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date() + timedelta(days=30))
 
     def __repr__(self):
         return f"Books('{self.title}', '{self.available}', '{self.date_borrowed}', '{self.user_id}')"
