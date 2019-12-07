@@ -114,7 +114,7 @@ def checkout_book(username):
     form.title.choices = [(book.title, book.title) for book in booklist if book.available]
 
     if form.validate_on_submit():
-        book = BookList.query.filter_by(title=form.title.data).first_or_404()
+        book = BookList.query.filter_by(title=form.title.data, owner=user).first_or_404()
         book.borrower = form.borrower.data
         book.borrower_email = form.borrower_email.data
         book.available = False
@@ -142,7 +142,7 @@ def return_book(username):
     form.title.choices = [(book.title, book.title) for book in booklist if not book.available]
 
     if form.validate_on_submit():
-        book = BookList.query.filter_by(title=form.title.data).first_or_404()
+        book = BookList.query.filter_by(title=form.title.data, owner=user).first_or_404()
         book.borrower = None
         book.borrower_email = None
         book.available = True
