@@ -29,6 +29,7 @@ class User(db.Model, UserMixin):
     # BookList is capitalized because we are referencing the BookList class not a table
     # user.booklist should return their books -- links to BookList table
     booklists = db.relationship('BookList', backref='owner', lazy=True)
+    reminders = db.relationship('Reminder', backref='owner', lazy=True)
 
     def __repr__(self):
         # how our object is printed when printed out
@@ -64,10 +65,14 @@ class BookList(db.Model):
     borrower = db.Column(db.String(100), nullable=True)
     # unique=False person may borrow multiple books
     borrower_email = db.Column(db.String(120), unique=False, nullable=True)
-    # date_borrowed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date())
     date_borrowed = db.Column(db.DateTime, nullable=True)
     date_due = db.Column(db.DateTime, nullable=True)
-    # date_due = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().date() + timedelta(days=30))
 
     def __repr__(self):
         return f"Books('{self.title}', '{self.available}', '{self.date_borrowed}', '{self.user_id}')"
+
+
+class Reminder(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # to link back to `user` Table
+    message = db.Column(db.Text, nullable=False)

@@ -26,11 +26,13 @@ def create_app(config_class=Config):
     from gemlibapp.main.routes import main
     from gemlibapp.errors.handlers import errors
     from gemlibapp.booklist.routes import booklist
+    from gemlibapp.reminder.routes import reminder
 
     app.register_blueprint(users)
     app.register_blueprint(main)
     app.register_blueprint(errors)
     app.register_blueprint(booklist)
+    app.register_blueprint(reminder)
 
     return app
 
