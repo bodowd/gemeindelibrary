@@ -65,8 +65,8 @@ class BookList(db.Model):
     borrower = db.Column(db.String(100), nullable=True)
     # unique=False person may borrow multiple books
     borrower_email = db.Column(db.String(120), unique=False, nullable=True)
-    date_borrowed = db.Column(db.DateTime, nullable=True)
-    date_due = db.Column(db.DateTime, nullable=True)
+    date_borrowed = db.Column(db.Date, nullable=True)
+    date_due = db.Column(db.Date, nullable=True)
 
     def __repr__(self):
         return f"Books('{self.title}', '{self.available}', '{self.date_borrowed}', '{self.user_id}')"
@@ -76,3 +76,7 @@ class Reminder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # to link back to `user` Table
     message = db.Column(db.Text, nullable=False)
+    subject = db.Column(db.String(100), nullable=False)
+
+    def __repr__(self):
+        return f"Reminder Table('{self.subject}', '{self.message}')"

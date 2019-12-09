@@ -1,13 +1,16 @@
 from flask_mail import Message
-from gemlibapp import mail
+from gemlibapp import mail, scheduler
+from gemlibapp.config import Config
+from gemlibapp.models import User, Reminder, BookList
+from datetime import timedelta, datetime
 
 
-def send_reminder_email(user):
-    msg = Message(subject='Das Buch ist bald fällig! The book is due soon! ', sender='gemeindelibrary@gmail.com', recipients=[user.email])
-    # _external=True gives an absolute url rather than a relative url. Gives full domain
-    msg.body = f'''Liebe Heilige, das Buch, das du ausgescheckt hast, ist fällig. 
-
-Bitte vergisst du nicht, es zurückzusenden!
-'''
+def send_reminder_email(user_email, subject, message):
+    msg = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[user_email])
+    msg.body = message
     mail.send(msg)
+
+
+# scheduler.add_job(func=daily_check, trigger="interval", days=1)
+
 

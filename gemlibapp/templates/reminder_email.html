@@ -8,6 +8,22 @@
         <fieldset class="form-group">
             <legend class="border-bottom mb-4">Reminder Email</legend>
             <div class="form-group">
+                This email will be sent to saints 1 week before their books are due.
+            </div>
+            <div class="form-group">
+                {{ form.subject.label(class="form-control-label") }}
+                {% if form.subject.errors %}
+                {{ form.subject(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.subject.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.subject(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
                 {{ form.message.label(class="form-control-label") }}
                 {% if form.message.errors %}
                 {{ form.message(class="form-control form-control-lg is-invalid") }}
