@@ -9,12 +9,11 @@
     </div>
     <div class="media-body">
         <h3>This will replace any existing booklist you have stored!!!</h3></br>
-        <p>Please submit a tab-delimited file (because book titles sometimes contain commas) with .xlsx or .txt extension containing the book titles in the first
-            column and the number of available books in the second column.</p>
+        <p>Please submit a .xlsx or tab-delimited (because book titles can contain commas) .txt file containing only a column of book titles.</p>
     </div></br>
     <!-- FORM HERE -->
     <!-- action="" posts the form to the same route that we already on -->
-    <form method="POST" action="" enctype="multipart/form-data"> <!-- REMEMBER multipart/form-data for some reason -->
+    <form method="POST" action="" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you wish to create a new list?\nThis will replace your current list!!!');"> <!-- REMEMBER multipart/form-data for some reason -->
         <!-- hidden_tag adds a csf token to protect from certain attacks -->
         {{ form.hidden_tag() }}
 
