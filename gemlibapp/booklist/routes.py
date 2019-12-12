@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, url_for, flash, redirect, request,
 from flask_login import current_user, login_required
 from gemlibapp import db, bcrypt
 from gemlibapp.models import BookList, User
-from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm
-from gemlibapp.booklist.utils import booklist_to_df
+from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, UpdateBookListForm
+from gemlibapp.booklist.utils import booklist_to_df, validate_standardize
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -19,41 +19,27 @@ def upload_booklist():
     form = BookListForm()
     if form.validate_on_submit():
         df = booklist_to_df(form.booklist_file)
-        if df.shape[1] < 2:  # check to make sure there is more than one column
-            flash(
-                'Missing column. Please remember to have the book titles\
-                 in the first column and the number available in the second column',
-                'danger')
+        df = validate_standardize(df, form)
+        if df is None:
             return render_template('booklist.html', title='Book List', form=form)
-        # add standardized column names
-        df.columns = ['Title', 'Number_available']
-        # check to see if the first column is filled with strings -- titles
-        if df['Title'].dtype != np.object or df['Number_available'].dtype != np.int:
-            flash('Please make sure book titles are in the first\
-                column and number of books available in the second column', 'danger')
-            return render_template('booklist.html', title='Book List', form=form)
-
-        # remove existing booklist for this user
+        # removes existing booklist for this user !!!
+        # TODO: Add a function to back up current checkout lists
         BookList.query.filter(BookList.owner == current_user).delete()
         db.session.commit()
         # add to db -- add one by one since it's simple and the data sizes are small
         for _, row in df.iterrows():
-            # creates a new row for each copy of the same title
-            for count in range(row['Number_available']):
-                if row['Number_available'] > 1:
-                    title = row['Title'] + f'-Copy({count+1})'
-                else:
-                    title = row['Title']
-                booklist_to_db = BookList(title=title,
-                                          owner=current_user,
-                                          available=True)
-                db.session.add(booklist_to_db)
-                db.session.commit()
+            title = row['Title']
+            booklist_to_db = BookList(title=title,
+                                      owner=current_user,
+                                      available=True)
+            db.session.add(booklist_to_db)
+            db.session.commit()
         flash('Your book list has been created!', 'success')
         return redirect(url_for('main.home'))
     return render_template('booklist.html', title='Book List', form=form)
 
-
+@booklist.route('/update_booklist', methods=['GET', 'POST'])
+@login_required
 def update_booklist():
     """
     Updates the booklist without losing information on books that are already checked out
@@ -62,7 +48,39 @@ def update_booklist():
     # without resetting the counts, then this won't work.
     # Perhaps a solution is to have a New booklist option, this one, and an Update BookList
     # page. In the update BookList page the database should just carry over from count_available
-    pass
+    form = UpdateBookListForm()
+    if form.validate_on_submit():
+        df = booklist_to_df(form.booklist_file)
+        df = validate_standardize(df, form)
+        if df is None:
+            return render_template('booklist.html', title='Book List', form=form)
+        for _, row in df.iterrows():
+            title = row['Title']
+            # # creates a new row for each copy of the same title
+            # for count in range(row['Number_available']):
+            #     if row['Number_available'] > 1:
+            #         title = row['Title'] + f'-Copy({count+1})'
+            #     else:
+            #         title = row['Title']
+
+            check_if_exists = BookList.query.filter_by(title=title).all()
+            print(check_if_exists)
+            print(check_if_exists is None)
+            # if the book is not already in the database, add it
+            if check_if_exists is None:
+                print(title)
+                booklist_to_db = BookList(title=title,
+                                          owner=current_user,
+                                          available=True)
+                db.session.add(booklist_to_db)
+                db.session.commit()
+            # elif check_if_exists.title == title:
+
+        flash('Your book list has been updated!', 'success')
+        return redirect(url_for('main.home'))
+    return render_template('update_booklist.html', title='Upload Booklist', form=form)
+
+
 
 
 @booklist.route('/booklist/<string:username>', methods=['GET', 'POST'])
