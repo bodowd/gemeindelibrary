@@ -56,16 +56,7 @@ def update_booklist():
             return render_template('booklist.html', title='Book List', form=form)
         for _, row in df.iterrows():
             title = row['Title']
-            # # creates a new row for each copy of the same title
-            # for count in range(row['Number_available']):
-            #     if row['Number_available'] > 1:
-            #         title = row['Title'] + f'-Copy({count+1})'
-            #     else:
-            #         title = row['Title']
-
-            check_if_exists = BookList.query.filter_by(title=title).all()
-            print(check_if_exists)
-            print(check_if_exists is None)
+            check_if_exists = BookList.query.filter_by(title=title).first() # returns Books object or None if not found
             # if the book is not already in the database, add it
             if check_if_exists is None:
                 print(title)
