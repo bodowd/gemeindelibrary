@@ -27,5 +27,6 @@ def validate_standardize(df, form):
     if df['Title'].dtype != np.object:
         flash('Please make sure the column of titles is filled.', 'danger')
         return None
+    df = df.sort_values(by=['Title'])
     return df
 
