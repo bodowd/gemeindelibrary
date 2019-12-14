@@ -168,6 +168,8 @@ def return_book(username):
 def backup_current_booklist():
     '''
     For each user get their booklist and send it to them
+
+    This will be called via crontab by wget -O- httppath/to/here
     '''
     usernames = db.session.query(User).distinct(User.username, User.email).all()
     # list(User('username', 'email'))
