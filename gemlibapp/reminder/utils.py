@@ -1,8 +1,6 @@
 from flask_mail import Message
-from gemlibapp import mail, scheduler
+from gemlibapp import mail
 from gemlibapp.config import Config
-from gemlibapp.models import User, Reminder, BookList
-from datetime import timedelta, datetime
 
 
 def send_reminder_email(user_email, subject, message):
@@ -11,6 +9,23 @@ def send_reminder_email(user_email, subject, message):
     mail.send(msg)
 
 
-# scheduler.add_job(func=daily_check, trigger="interval", days=1)
+class DefaultReminderMessage():
+    default_message = """Liebe Heilige,
+    das von dir ausgeliehene Buch ist fällig.
+    Bitte vergisst du nicht, es zurückzusenden.
+    Vielen Dank.
 
+    Grüße,
+    Bücher dienende Heilige 
+    --------------
+    Hello Saint,
+    The book you have borrowed is due.
+    Please do not forget to return it.
+    Thank you.
+
+    Regards,
+    Saints serving with books
+    """
+
+    default_subject = "Das Buch ist bald fällig. The book is due soon."
 
