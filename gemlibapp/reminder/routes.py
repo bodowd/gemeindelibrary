@@ -44,7 +44,7 @@ def reminder_email(username):
 def daily_check():
     """
     Checks for books due 7 days from today.
-    wget the_website.com/daily_check will be called from crontab every day
+    wget -O- the_website.com/daily_check will be called from crontab every day
 
     """
     # # to test functionality:
