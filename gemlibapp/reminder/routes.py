@@ -54,6 +54,7 @@ def daily_check():
     for book in books_due:
         # couldn't filter_by owner because that doesn't take strings. That takes `current_user` object
         id_user = User.query.filter_by(username=book.owner.username).first().id
+        # get the booklist owner's reminder email message and subject
         _reminder = Reminder.query.filter_by(user_id=id_user).first()
         subject = _reminder.subject
         message = _reminder.message
