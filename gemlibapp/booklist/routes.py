@@ -1,10 +1,10 @@
+import os
 from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
 from flask_login import current_user, login_required
 from gemlibapp import db, bcrypt
 from gemlibapp.models import BookList, User
 from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, UpdateBookListForm
 from gemlibapp.booklist.utils import booklist_to_df, validate_standardize
-import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -163,5 +163,36 @@ def return_book(username):
         return redirect(url_for('main.home'))
 
     return render_template('return_book.html', title='Book Return', form=form)
+
+@booklist.route('/booklist/backup')
+def backup_current_booklist():
+    '''
+    For each user get their booklist and send it to them
+    '''
+    usernames = db.session.query(User).distinct(User.username, User.email).all()
+    # list(User('username', 'email'))
+    for usr in usernames:
+        booklist = BookList.query.filter_by(owner=usr).all()
+        # make into csv
+        rows = {}
+        for k in BookList.__table__.columns.keys():
+            rows[k] = []
+            for bk in booklist:
+                # access the respective key for each book and add to the rows dictionary
+                rows[k].append(bk.__dict__[k])
+
+        df = pd.DataFrame.from_dict(rows)
+        # make into csv and attach as attachment to email
+        path_tmp = os.path.join(os.environ['PYTHONPATH'], 'gemlibapp', 'booklist', 'tmp')
+        csv_filename = f'backup_{datetime.utcnow().date()}_for_{usr.username}.csv'
+        # print(os.path.join(path_tmp, 'tmp', csv_filename))
+        df.to_csv(os.path.join(path_tmp, csv_filename))
+
+    # cleanup tmp dir
+    filelist = [f for f in os.listdir(path_tmp) if f.endswith('.csv')]
+    for f in filelist:
+        os.remove(os.path.join(path_tmp, f))
+
+    return redirect(url_for('main.home'))
 
 
