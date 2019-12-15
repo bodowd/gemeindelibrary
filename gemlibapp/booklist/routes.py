@@ -25,7 +25,6 @@ def upload_booklist():
         if df is None:
             return render_template('booklist.html', title='Book List', form=form)
         # removes existing booklist for this user !!!
-        # TODO: Add a function to back up current checkout lists
         BookList.query.filter(BookList.owner == current_user).delete()
         db.session.commit()
         # add to db -- add one by one since it's simple and the data sizes are small
@@ -56,7 +55,7 @@ def update_booklist():
         df = booklist_to_df(form.booklist_file)
         df = validate_standardize(df, form)
         if df is None:
-            return render_template('booklist.html', title='Book List', form=form)
+            return render_template('update_booklist.html', title='Book List', form=form)
         for _, row in df.iterrows():
             title = row['Title']
             check_if_exists = BookList.query.filter_by(title=title).first()  # returns Books object or None if not found
