@@ -1,13 +1,15 @@
+import csv
 import os
 from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
 from flask_login import current_user, login_required
-from gemlibapp import db, bcrypt
+from flask_mail import Message
+from gemlibapp import db, bcrypt, mail
 from gemlibapp.models import BookList, User
 from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, UpdateBookListForm
 from gemlibapp.booklist.utils import booklist_to_df, validate_standardize
+from gemlibapp.config import Config
 import pandas as pd
 from datetime import datetime, timedelta
-
 
 booklist = Blueprint('booklist', __name__)
 
@@ -38,6 +40,7 @@ def upload_booklist():
         return redirect(url_for('main.home'))
     return render_template('booklist.html', title='Book List', form=form)
 
+
 @booklist.route('/update_booklist', methods=['GET', 'POST'])
 @login_required
 def update_booklist():
@@ -56,7 +59,7 @@ def update_booklist():
             return render_template('booklist.html', title='Book List', form=form)
         for _, row in df.iterrows():
             title = row['Title']
-            check_if_exists = BookList.query.filter_by(title=title).first() # returns Books object or None if not found
+            check_if_exists = BookList.query.filter_by(title=title).first()  # returns Books object or None if not found
             # if the book is not already in the database, add it
             if check_if_exists is None:
                 print(title)
@@ -70,8 +73,6 @@ def update_booklist():
         flash('Your book list has been updated!', 'success')
         return redirect(url_for('main.home'))
     return render_template('update_booklist.html', title='Upload Booklist', form=form)
-
-
 
 
 @booklist.route('/booklist/<string:username>', methods=['GET', 'POST'])
@@ -164,6 +165,7 @@ def return_book(username):
 
     return render_template('return_book.html', title='Book Return', form=form)
 
+
 @booklist.route('/booklist/backup')
 def backup_current_booklist():
     '''
@@ -190,11 +192,17 @@ def backup_current_booklist():
         # print(os.path.join(path_tmp, 'tmp', csv_filename))
         df.to_csv(os.path.join(path_tmp, csv_filename))
 
+        with open(os.path.join(path_tmp, csv_filename), 'r') as f:
+            msg = Message(subject=f'Library backup {datetime.utcnow().date()}', sender=Config.MAIL_USERNAME,
+                          recipients=[usr.email])
+            msg.body = 'Please find a backup of your library in the attachments.' \
+                       '\nIm Anhang findest du bitte deine Bibliothek.'
+            msg.attach(filename=csv_filename, content_type='text/csv', data=f.read())
+            mail.send(msg)
+
     # cleanup tmp dir
     filelist = [f for f in os.listdir(path_tmp) if f.endswith('.csv')]
     for f in filelist:
         os.remove(os.path.join(path_tmp, f))
 
     return redirect(url_for('main.home'))
-
-
