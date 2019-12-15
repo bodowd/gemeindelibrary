@@ -3,12 +3,14 @@ from flask_login import login_user, current_user, logout_user, login_required
 from gemlibapp import db, bcrypt
 from gemlibapp.models import User, BookList
 from gemlibapp.users.forms import (RegistrationForm, LoginForm, UpdateAccountForm,
-                                RequestResetForm, ResetPasswordForm)
+                                   RequestResetForm, ResetPasswordForm)
 from gemlibapp.users.utils import send_reset_email
 
 users = Blueprint('users', __name__)
 
+
 @users.route('/register', methods=['GET', 'POST'])
+@login_required  # hacky fix so that not anybody can register yet.
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
@@ -70,16 +72,6 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
     return render_template('account.html', title='Account', form=form)
-
-
-# @users.route('/user/<string:username>')
-# def user_posts(username):
-#     page = request.args.get('page', 1, type=int)
-#     user = User.query.filter_by(username=username).first_or_404()
-#     posts = Post.query.filter_by(author=user) \
-#         .order_by(Post.date_posted.desc()) \
-#         .paginate(per_page=3, page=page)
-#     return render_template('user_posts.html', posts=posts, user=user)
 
 
 @users.route('/reset_password', methods=['GET', 'POST'])
