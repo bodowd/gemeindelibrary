@@ -58,7 +58,6 @@ def daily_check():
         _reminder = Reminder.query.filter_by(user_id=id_user).first()
         subject = _reminder.subject
         message = _reminder.message
-        print(id_user, subject, message)
-        # send_reminder_email(book.borrower_email, subject=subject, message=message)
+        send_reminder_email(book.borrower_email, subject=subject, message=message)
     return redirect(url_for('main.home'))
 
