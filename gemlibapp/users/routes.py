@@ -10,7 +10,6 @@ users = Blueprint('users', __name__)
 
 
 @users.route('/register', methods=['GET', 'POST'])
-@login_required  # hacky fix so that not anybody can register yet.
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
