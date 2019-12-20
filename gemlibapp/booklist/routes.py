@@ -88,7 +88,7 @@ def view_booklist(username):
     booklist_dict['Title'] = []
     booklist_dict['Available'] = []
     booklist_dict['Date Borrowed'] = []
-    booklist_dict['Username'] = []
+    # booklist_dict['Username'] = []
     booklist_dict['Borrower'] = []
     booklist_dict['Borrower Email'] = []
     booklist_dict['Date Due'] = []
@@ -97,7 +97,7 @@ def view_booklist(username):
         booklist_dict['Title'].append(book.title)
         booklist_dict['Available'].append(book.available)
         booklist_dict['Date Borrowed'].append(book.date_borrowed)
-        booklist_dict['Username'].append(book.owner.username)
+        # booklist_dict['Username'].append(book.owner.username)
         booklist_dict['Borrower'].append(book.borrower)
         booklist_dict['Borrower Email'].append(book.borrower_email)
         booklist_dict['Date Due'].append(book.date_due)
