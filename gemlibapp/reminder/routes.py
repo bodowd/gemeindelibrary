@@ -49,6 +49,8 @@ def daily_check():
     """
     # # to test functionality:
     # due_date = datetime.today() + timedelta(days=30)
+    ##
+    # this is the one for production. Send email 7 days before it is due
     due_date = datetime.today() + timedelta(days=7)
     books_due = BookList.query.filter_by(date_due=due_date.date()).all()
     for book in books_due:
