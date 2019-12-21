@@ -15,7 +15,7 @@ def booklist_to_df(booklist_file):
 
 def validate_standardize(df, form):
     if df.shape[1] != 1:  # check to make sure there is only one column
-        print(df.shape)
+        # print(df.shape)
         flash('Please make sure to only submit one column which is composed of book titles.', 'danger')
         return None
     # add standardized column names
