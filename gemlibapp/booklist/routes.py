@@ -60,7 +60,6 @@ def update_booklist():
             check_if_exists = BookList.query.filter_by(title=title).first()  # returns Books object or None if not found
             # if the book is not already in the database, add it
             if check_if_exists is None:
-                print(title)
                 booklist_to_db = BookList(title=title,
                                           owner=current_user,
                                           available=True)
@@ -187,7 +186,6 @@ def backup_current_booklist():
         # make into csv and attach as attachment to email
         path_tmp = os.path.join(Config.PYTHONPATH, 'gemlibapp', 'booklist', 'tmp')
         csv_filename = f'backup_{datetime.utcnow().date()}_for_{usr.username}.csv'
-        # print(os.path.join(path_tmp, 'tmp', csv_filename))
         df.to_csv(os.path.join(path_tmp, csv_filename))
 
         with open(os.path.join(path_tmp, csv_filename), 'r') as f:
