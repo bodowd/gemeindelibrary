@@ -1,4 +1,3 @@
-import csv
 import os
 from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
 from flask_login import current_user, login_required
@@ -186,7 +185,7 @@ def backup_current_booklist():
 
         df = pd.DataFrame.from_dict(rows)
         # make into csv and attach as attachment to email
-        path_tmp = os.path.join(os.environ['PYTHONPATH'], 'gemlibapp', 'booklist', 'tmp')
+        path_tmp = os.path.join(Config.PYTHONPATH, 'gemlibapp', 'booklist', 'tmp')
         csv_filename = f'backup_{datetime.utcnow().date()}_for_{usr.username}.csv'
         # print(os.path.join(path_tmp, 'tmp', csv_filename))
         df.to_csv(os.path.join(path_tmp, csv_filename))
