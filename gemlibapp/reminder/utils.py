@@ -11,7 +11,7 @@ def send_reminder_email(user_email, subject, message):
 
 class DefaultReminderMessage():
     default_message = """Liebe Heilige,
-    das von dir ausgeliehene Buch ist fällig.
+    das von dir ausgeliehen Buch ist diese Woche am Tag des Herrn fällig.
     Bitte vergisst du nicht, es zurückzusenden.
     Vielen Dank.
 
@@ -19,7 +19,7 @@ class DefaultReminderMessage():
     Bücher dienende Heilige 
     --------------
     Hello Saint,
-    The book you have borrowed is due.
+    The book you have borrowed is due this week on Lord's Day.
     Please do not forget to return it.
     Thank you.
 
