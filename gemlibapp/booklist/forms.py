@@ -31,7 +31,7 @@ class CheckoutBookForm(FlaskForm):
     # coerce to str so that the returned value in form.title.data is the book title
     title = SelectField('Title', coerce=str)
     borrower = StringField('Borrower', validators=[DataRequired()])
-    borrower_email = StringField('Email', validators=[DataRequired(), Email()])
+    borrower_email = StringField('Email of borrower', validators=[DataRequired(), Email()])
     submit = SubmitField('Checkout Book')
 
 
