@@ -7,10 +7,7 @@ main = Blueprint('main', __name__)
 @main.route('/home')
 def home():
     if current_user.is_authenticated:
-        return redirect(url_for('booklist.view_booklist', username=current_user.username))
-
-    # page = request.args.get('page', 1, type=int)
-    # posts = Post.query.order_by(Post.date_posted.desc()).paginate(per_page=3, page=page)
+        return redirect(url_for('booklist.view_booklist'))
     else:
         return render_template('home.html')
 

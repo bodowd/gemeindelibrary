@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, url_for, flash, redirect, request,
 from flask_login import current_user, login_required
 from flask_mail import Message
 from gemlibapp import db, bcrypt, mail
-from gemlibapp.models import BookList, User
+from gemlibapp.models import BookList, User, BookStatus
 from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, UpdateBookListForm
 from gemlibapp.booklist.utils import booklist_to_df, validate_standardize
 from gemlibapp.config import Config
@@ -13,7 +13,21 @@ from datetime import datetime, timedelta
 booklist = Blueprint('booklist', __name__)
 
 
-# add new booklist
+@booklist.route('/delete_booklist', methods=['GET', 'POST'])
+@login_required
+def delete_booklist():
+    '''removes existing booklist !!!'''
+
+    # TODO: add password verification as safety
+    BookList.query.delete()
+
+    ### TEMPORARY JUST FOR DEV
+    BookStatus.query.delete()
+
+    db.session.commit()
+    flash('Your book list has been deleted.', 'success')
+    return redirect(url_for('main.home'))
+
 @booklist.route('/upload_booklist', methods=['GET', 'POST'])
 @login_required
 def upload_booklist():
@@ -23,18 +37,25 @@ def upload_booklist():
         df = validate_standardize(df, form)
         if df is None:
             return render_template('booklist.html', title='Book List', form=form)
-        # removes existing booklist for this user !!!
-        BookList.query.filter(BookList.owner == current_user).delete()
-        db.session.commit()
-        # add to db -- add one by one since it's simple and the data sizes are small
+
+        # adds books iteratively
         for _, row in df.iterrows():
             title = row['Title']
-            booklist_to_db = BookList(title=title,
-                                      owner=current_user,
-                                      available=True)
-            db.session.add(booklist_to_db)
-            db.session.commit()
-        flash('Your book list has been created!', 'success')
+            _book = BookList.query.filter_by(title=title).first()
+            # only add to db if it doesn't already exist in db
+            if _book is None:
+                booklist_to_db = BookList(title=title)
+                db.session.add(booklist_to_db)
+                db.session.commit()
+            # creates new book status if it's not already in book_status table
+            # if it is already there, we skip it so that we don't lose information on currently checked out books
+            _book = BookList.query.filter_by(title=title).first()
+            book_status = BookStatus.query.filter_by(book_id = _book.id).first()
+            if book_status is None:
+                _status = BookStatus(book_id=_book.id, available=True, borrower=None)
+                db.session.add(_status)
+        db.session.commit()
+        flash('Your book list has been updated!', 'success')
         return redirect(url_for('main.home'))
     return render_template('booklist.html', title='Book List', form=form)
 
@@ -72,13 +93,11 @@ def update_booklist():
     return render_template('update_booklist.html', title='Upload Booklist', form=form)
 
 
-@booklist.route('/booklist/<string:username>', methods=['GET', 'POST'])
+@booklist.route('/booklist', methods=['GET'])
 @login_required
-def view_booklist(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    if user != current_user:
-        abort(403)
-    booklist = BookList.query.filter_by(owner=user).all()
+def view_booklist():
+    booklist = BookList.query.all()
+    ### reminder of how to parse the output of a sqlalchemy query ... # print(booklist[0].title)
     # df = pd.DataFrame(booklist)
 
     # might be a nicer way to do this, but this works
@@ -86,19 +105,18 @@ def view_booklist(username):
     booklist_dict['Title'] = []
     booklist_dict['Available'] = []
     booklist_dict['Date Borrowed'] = []
-    # booklist_dict['Username'] = []
     booklist_dict['Borrower'] = []
     booklist_dict['Borrower Email'] = []
     booklist_dict['Date Due'] = []
 
     for book in booklist:
+        book_status = BookStatus.query.filter_by(book_id=book.id).first()
         booklist_dict['Title'].append(book.title)
-        booklist_dict['Available'].append(book.available)
-        booklist_dict['Date Borrowed'].append(book.date_borrowed)
-        # booklist_dict['Username'].append(book.owner.username)
-        booklist_dict['Borrower'].append(book.borrower)
-        booklist_dict['Borrower Email'].append(book.borrower_email)
-        booklist_dict['Date Due'].append(book.date_due)
+        booklist_dict['Available'].append(book_status.available)
+        booklist_dict['Date Borrowed'].append(book_status.date_borrowed)
+        booklist_dict['Borrower'].append(book_status.borrower)
+        booklist_dict['Borrower Email'].append(book_status.borrower_email)
+        booklist_dict['Date Due'].append(book_status.date_due)
 
     df = pd.DataFrame.from_dict(booklist_dict)
 
@@ -106,12 +124,9 @@ def view_booklist(username):
                            tables=[df.to_html(classes='data', header='true')])
 
 
-@booklist.route('/booklist/<string:username>/checkout', methods=['GET', 'POST'])
+@booklist.route('/checkout', methods=['GET', 'POST'])
 @login_required
-def checkout_book(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    if user != current_user:
-        abort(403)
+def checkout_book():
     booklist = BookList.query.filter_by(owner=user).all()
 
     form = CheckoutBookForm()
