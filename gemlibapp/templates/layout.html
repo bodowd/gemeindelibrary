@@ -36,7 +36,7 @@
                     <a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
                     <a class="nav-item nav-link" href="{{ url_for('main.about') }}">About</a>
                     {% if current_user.is_authenticated %}
-                        <a class="nav-item nav-link" href="{{ url_for('reminder.reminder_email', username=current_user.username) }}">Edit Reminder Email</a>
+                        <a class="nav-item nav-link" href="{{ url_for('reminder.reminder_email') }}">Edit Reminder Email</a>
                     {% endif %}
 
 <!--                    {% if current_user.is_authenticated %}-->
