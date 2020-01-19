@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, url_for, flash, redirect, abort, request
-from flask_login import login_user, current_user, login_required
+from flask_login import current_user, login_required
 from gemlibapp.models import User, Reminder, BookList
 from gemlibapp.reminder.forms import ReminderEmailForm
 from gemlibapp import db
@@ -8,16 +8,13 @@ from gemlibapp.reminder.utils import send_reminder_email, DefaultReminderMessage
 
 reminder = Blueprint('reminder', __name__)
 
-@reminder.route('/reminder_email/<string:username>', methods=['GET', 'POST'])
+@reminder.route('/reminder_email', methods=['GET', 'POST'])
 @login_required
-def reminder_email(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    if user != current_user:
-        abort(403)
+def reminder_email():
 
     form = ReminderEmailForm()
     if form.validate_on_submit():
-        current_message = Reminder.query.filter_by(owner=user).first()
+        current_message = Reminder.query.first()
         # store template in db
         current_message.message = form.message.data
         current_message.subject = form.subject.data
@@ -25,14 +22,13 @@ def reminder_email(username):
         flash('The content in your reminder email has been updated.', 'success')
 
     elif request.method == 'GET':
-        current_message = Reminder.query.filter_by(owner=user).first()
+        current_message = Reminder.query.first()
         if current_message is None:
             reminder_db = Reminder(message=DefaultReminderMessage.default_message,
-                                   owner=current_user,
                                    subject=DefaultReminderMessage.default_subject)
             db.session.add(reminder_db)
             db.session.commit()
-            return redirect(url_for('reminder.reminder_email', username=username))
+            return redirect(url_for('reminder.reminder_email'))
         else:
             form.message.data = current_message.message
             form.subject.data = current_message.subject
