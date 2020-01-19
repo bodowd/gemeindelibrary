@@ -3,9 +3,9 @@ from flask import Blueprint, render_template, url_for, flash, redirect, request,
 from flask_login import current_user, login_required
 from flask_mail import Message
 from gemlibapp import db, bcrypt, mail
-from gemlibapp.models import BookList, User, BookStatus
+from gemlibapp.models import BookList, BookStatus, credentials
 from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, UpdateBookListForm
-from gemlibapp.booklist.utils import booklist_to_df, validate_standardize
+from gemlibapp.booklist.utils import booklist_to_df, validate_standardize, booklist2df
 from gemlibapp.config import Config
 import pandas as pd
 from datetime import datetime, timedelta
@@ -21,12 +21,18 @@ def delete_booklist():
     # TODO: add password verification as safety
     BookList.query.delete()
 
-    ### TEMPORARY JUST FOR DEV
-    BookStatus.query.delete()
-
     db.session.commit()
     flash('Your book list has been deleted.', 'success')
     return redirect(url_for('main.home'))
+
+
+# ### JUST FOR DEV!!
+# @booklist.route('/delete_status', methods=['GET', 'POST'])
+# @login_required
+# def delete_status():
+#     ### TEMPORARY JUST FOR DEV
+#     BookStatus.query.delete()
+#     return redirect(url_for('main.home'))
 
 @booklist.route('/upload_booklist', methods=['GET', 'POST'])
 @login_required
@@ -50,9 +56,9 @@ def upload_booklist():
             # creates new book status if it's not already in book_status table
             # if it is already there, we skip it so that we don't lose information on currently checked out books
             _book = BookList.query.filter_by(title=title).first()
-            book_status = BookStatus.query.filter_by(book_id = _book.id).first()
+            book_status = BookStatus.query.filter_by(book_id=_book.id).first()
             if book_status is None:
-                _status = BookStatus(book_id=_book.id, available=True, borrower=None)
+                _status = BookStatus(book_id=_book.id, available=True, borrower=None, back2booklist=_book)
                 db.session.add(_status)
         db.session.commit()
         flash('Your book list has been updated!', 'success')
@@ -63,34 +69,37 @@ def upload_booklist():
 @booklist.route('/update_booklist', methods=['GET', 'POST'])
 @login_required
 def update_booklist():
-    """
-    Updates the booklist without losing information on books that are already checked out
-    """
-    # currently new_booklist resets count_available. If an user wants to update their booklist
-    # without resetting the counts, then this won't work.
-    # Perhaps a solution is to have a New booklist option, this one, and an Update BookList
-    # page. In the update BookList page the database should just carry over from count_available
-    form = UpdateBookListForm()
-    if form.validate_on_submit():
-        df = booklist_to_df(form.booklist_file)
-        df = validate_standardize(df, form)
-        if df is None:
-            return render_template('update_booklist.html', title='Book List', form=form)
-        for _, row in df.iterrows():
-            title = row['Title']
-            check_if_exists = BookList.query.filter_by(title=title).first()  # returns Books object or None if not found
-            # if the book is not already in the database, add it
-            if check_if_exists is None:
-                booklist_to_db = BookList(title=title,
-                                          owner=current_user,
-                                          available=True)
-                db.session.add(booklist_to_db)
-                db.session.commit()
-            # elif check_if_exists.title == title:
+    pass
 
-        flash('Your book list has been updated!', 'success')
-        return redirect(url_for('main.home'))
-    return render_template('update_booklist.html', title='Upload Booklist', form=form)
+
+#     """
+#     Updates the booklist without losing information on books that are already checked out
+#     """
+#     # currently new_booklist resets count_available. If an user wants to update their booklist
+#     # without resetting the counts, then this won't work.
+#     # Perhaps a solution is to have a New booklist option, this one, and an Update BookList
+#     # page. In the update BookList page the database should just carry over from count_available
+#     form = UpdateBookListForm()
+#     if form.validate_on_submit():
+#         df = booklist_to_df(form.booklist_file)
+#         df = validate_standardize(df, form)
+#         if df is None:
+#             return render_template('update_booklist.html', title='Book List', form=form)
+#         for _, row in df.iterrows():
+#             title = row['Title']
+#             check_if_exists = BookList.query.filter_by(title=title).first()  # returns Books object or None if not found
+#             # if the book is not already in the database, add it
+#             if check_if_exists is None:
+#                 booklist_to_db = BookList(title=title,
+#                                           owner=current_user,
+#                                           available=True)
+#                 db.session.add(booklist_to_db)
+#                 db.session.commit()
+#             # elif check_if_exists.title == title:
+#
+#         flash('Your book list has been updated!', 'success')
+#         return redirect(url_for('main.home'))
+#     return render_template('update_booklist.html', title='Upload Booklist', form=form)
 
 
 @booklist.route('/booklist', methods=['GET'])
@@ -127,16 +136,20 @@ def view_booklist():
 @booklist.route('/checkout', methods=['GET', 'POST'])
 @login_required
 def checkout_book():
-    booklist = BookList.query.filter_by(owner=user).all()
-
+    # get the books that are available
+    # booklist = BookList.query.all()
+    _status = BookStatus.query.filter_by(available=True).all()
     form = CheckoutBookForm()
 
     # Drop down menu
     # needs to receive a tuple. I don't know why.
-    form.title.choices = [(book.title, book.title) for book in booklist if book.available]
+    form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status]
 
     if form.validate_on_submit():
-        book = BookList.query.filter_by(title=form.title.data, owner=user).first_or_404()
+        # get the object from booklist
+        title = BookList.query.filter_by(title=form.title.data).first_or_404()
+        # pass that object to status via the backref back2booklist to check it out
+        book = BookStatus.query.filter_by(back2booklist=title).first_or_404()
         book.borrower = form.borrower.data
         book.borrower_email = form.borrower_email.data
         book.available = False
@@ -144,27 +157,28 @@ def checkout_book():
         book.date_due = book.date_borrowed + timedelta(days=30)
         db.session.commit()
 
-        flash(f'{book.title} has been checked out by {book.borrower}!', 'success')
+        flash(f'{book.back2booklist.title} has been checked out by {book.borrower}!', 'success')
         return redirect(url_for('main.home'))
 
     return render_template('checkout_book.html', title='Checkout Book', form=form)
 
 
-@booklist.route('/booklist/<string:username>/return', methods=['GET', 'POST'])
+@booklist.route('/return_book', methods=['GET', 'POST'])
 @login_required
-def return_book(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    if user != current_user:
-        abort(403)
-    booklist = BookList.query.filter_by(owner=user).all()
+def return_book():
+    # booklist = BookList.query.filter_by(owner=user).all()
+    _status = BookStatus.query.filter_by(available=False).all()
 
     form = ReturnBookForm()
 
     # only populate the form with Books that are available=False
-    form.title.choices = [(book.title, book.title) for book in booklist if not book.available]
+    form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status]
 
     if form.validate_on_submit():
-        book = BookList.query.filter_by(title=form.title.data, owner=user).first_or_404()
+        # get the object from booklist
+        title = BookList.query.filter_by(title=form.title.data).first_or_404()
+        # pass that object to status via the backref back2booklist to check it out
+        book = BookStatus.query.filter_by(back2booklist=title).first_or_404()
         book.borrower = None
         book.borrower_email = None
         book.available = True
@@ -172,7 +186,7 @@ def return_book(username):
         book.date_due = None
         db.session.commit()
 
-        flash(f'{book.title} has been returned.', 'success')
+        flash(f'{book.back2booklist.title} has been returned.', 'success')
         return redirect(url_for('main.home'))
 
     return render_template('return_book.html', title='Book Return', form=form)
@@ -181,35 +195,23 @@ def return_book(username):
 @booklist.route('/booklist/backup')
 def backup_current_booklist():
     '''
-    For each user get their booklist and send it to them
+    Backs up current status and sends it to admin email
 
     This will be called via crontab by wget -O- httppath/to/here
     '''
-    usernames = db.session.query(User).distinct(User.username, User.email).all()
-    # list(User('username', 'email'))
-    for usr in usernames:
-        booklist = BookList.query.filter_by(owner=usr).all()
-        # make into csv
-        rows = {}
-        for k in BookList.__table__.columns.keys():
-            rows[k] = []
-            for bk in booklist:
-                # access the respective key for each book and add to the rows dictionary
-                rows[k].append(bk.__dict__[k])
+    df = booklist2df()
+    # make tmp file and put it in tmp directory. After sending the email it will be deleted
+    path_tmp = os.path.join(Config.PYTHONPATH, 'gemlibapp', 'booklist', 'tmp')
+    csv_filename = f'backup_{datetime.utcnow().date()}.csv'
+    df.to_csv(os.path.join(path_tmp, csv_filename))
 
-        df = pd.DataFrame.from_dict(rows)
-        # make into csv and attach as attachment to email
-        path_tmp = os.path.join(Config.PYTHONPATH, 'gemlibapp', 'booklist', 'tmp')
-        csv_filename = f'backup_{datetime.utcnow().date()}_for_{usr.username}.csv'
-        df.to_csv(os.path.join(path_tmp, csv_filename))
-
-        with open(os.path.join(path_tmp, csv_filename), 'r') as f:
-            msg = Message(subject=f'Library backup {datetime.utcnow().date()}', sender=Config.MAIL_USERNAME,
-                          recipients=[usr.email])
-            msg.body = 'Please find a backup of your library in the attachments.' \
-                       '\nIm Anhang findest du bitte deine Bibliothek.'
-            msg.attach(filename=csv_filename, content_type='text/csv', data=f.read())
-            mail.send(msg)
+    with open(os.path.join(path_tmp, csv_filename), 'r') as f:
+        msg = Message(subject=f'Library backup {datetime.utcnow().date()}', sender=Config.MAIL_USERNAME,
+                      recipients=[Config.MAIL_USERNAME])
+        msg.body = 'Please find a backup of the library in the attachments.' \
+                   '\nIm Anhang findest du bitte die Bibliothek.'
+        msg.attach(filename=csv_filename, content_type='text/csv', data=f.read())
+        mail.send(msg)
 
     # cleanup tmp dir
     filelist = [f for f in os.listdir(path_tmp) if f.endswith('.csv')]

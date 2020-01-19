@@ -50,14 +50,6 @@ def login():
         return redirect(url_for('main.home'))
     form = LoginForm()
     if form.validate_on_submit():
-        # TODO: check the config file to verify email and password
-        # user = User.query.filter_by(email=form.email.data).first()  # return first user that matches
-        # if user and bcrypt.check_password_hash(User.password, form.password.data):
-        #     login_user(user, remember=form.remember.data)
-        #     # return the user, after they log in, to the page they were trying to get to but weren't logged in
-        #     next_page = request.args.get('next')
-        #     flash('You have successfully logged in. Welcome back.', 'success')
-        #     return redirect(next_page) if next_page else redirect(url_for('main.home'))
         if form.email.data == credentials['email'] and form.password.data == credentials['password']:
             user = User()
             user.id = form.email.data
