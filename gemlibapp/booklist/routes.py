@@ -198,6 +198,8 @@ def backup_current_booklist():
     Backs up current status and sends it to admin email
 
     This will be called via crontab by wget -O- httppath/to/here
+
+    Remember to access crontab on the server with sudo
     '''
     df = booklist2df()
     # make tmp file and put it in tmp directory. After sending the email it will be deleted
