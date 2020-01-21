@@ -16,5 +16,7 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = config.get('EMAIL_USER')
     MAIL_PASSWORD = config.get('EMAIL_PASS')
+    APP_USERNAME = config.get('APP_USERNAME')
+    APP_PASSWORD = config.get('APP_PASSWORD')
     PYTHONPATH = config.get('PYTHONPATH')
 

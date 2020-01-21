@@ -17,9 +17,9 @@ class User(UserMixin):
     pass
 
 
-credentials = {'email': Config.MAIL_USERNAME,
+credentials = {'email': Config.APP_USERNAME,
                # need to hash
-               'password': Config.MAIL_PASSWORD}
+               'password': Config.APP_PASSWORD}
 
 
 # # decorator lets login_manager package find the user in the session
