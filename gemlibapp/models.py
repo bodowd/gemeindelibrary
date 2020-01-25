@@ -18,7 +18,6 @@ class User(UserMixin):
 
 
 credentials = {'email': Config.APP_USERNAME,
-               # need to hash
                'password': Config.APP_PASSWORD}
 
 
