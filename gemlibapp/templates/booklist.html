@@ -8,7 +8,6 @@
         </div>
     </div>
     <div class="media-body">
-        <h3>This will replace any existing booklist you have stored!!!</h3></br>
         <p>Please submit a .xlsx or tab-delimited (because book titles can contain commas) .txt file containing only a column of book titles with a header row.</p>
         <p>For example:</p>
         <p>Titles</p>
@@ -16,10 +15,6 @@
         <p>Book 2</p>
     </div></br>
     <!-- FORM HERE -->
-    <!-- action="" posts the form to the same route that we already on -->
-    <form method="POST" action="" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you wish to create a new list?\nThis will replace your current list!!!');"> <!-- REMEMBER multipart/form-data for some reason -->
-        <!-- hidden_tag adds a csf token to protect from certain attacks -->
-        {{ form.hidden_tag() }}
 
         <div class="form-group">
             {{ form.booklist_file.label() }}
@@ -31,7 +26,7 @@
             {% endif %}
         </div>
         <div class="form-group">
-            {{ form.submit(class="btn btn-danger") }}
+            {{ form.submit(class="btn btn-outline-info mt-1 mb-1") }}
         </div>
     </form>
 </div>
