@@ -4,7 +4,7 @@ from flask_login import current_user, login_required
 from flask_mail import Message
 from gemlibapp import db, bcrypt, mail
 from gemlibapp.models import BookList, BookStatus, credentials
-from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, DeleteBookListForm
+from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, DeleteBookListForm, DeleteABookForm
 from gemlibapp.booklist.utils import booklist_to_df, validate_standardize, booklist2df
 from gemlibapp.config import Config
 import pandas as pd
@@ -59,7 +59,7 @@ def upload_booklist():
             # creates new book status if it's not already in book_status table
             # if it is already there, we skip it so that we don't lose information on currently checked out books
             _book = BookList.query.filter_by(title=title).first()
-            book_status = BookStatus.query.filter_by(book_id=_book.id).first()
+            book_status = BookStatus.query.filter_by(backup_title=_book.title).first()
             if book_status is None:
                 _status = BookStatus(book_id=_book.id, backup_title=title, available=True, borrower=None, back2booklist=_book)
                 db.session.add(_status)
@@ -101,13 +101,34 @@ def view_booklist():
     for book in _status:
         _ = BookList.query.filter_by(id=book.id).first()
         if _ is None:
-            print('HWEFO')
             flash(
                 f'{book.backup_title} is still checked out but no longer in your booklist. Pease add it back in and resolve the conflict.', 'danger')
 
     return render_template('view_booklist.html', title='Home',
                            tables=[df.to_html(classes='data', header='true')])
 
+@booklist.route('/delete_a_book', methods=['GET', 'POST'])
+@login_required
+def delete_a_book():
+    _books = BookList.query.all()
+    form = DeleteABookForm()
+
+    # Drop down menu
+    # needs to receive a tuple. I don't know why.
+    form.title.choices = [(book.title, book.title) for book in _books]
+    # needs to check if we have a status stored but we don't have it in the booklist
+
+    if form.validate_on_submit():
+        # get the object from booklist
+        title = form.title.data
+        BookList.query.filter_by(title=title).delete()
+
+        db.session.commit()
+
+        flash(f'{title} has been deleted from your booklist.', 'success')
+        return redirect(url_for('main.home'))
+
+    return render_template('delete_a_book.html', title='Delete A Book', form=form)
 
 @booklist.route('/checkout', methods=['GET', 'POST'])
 @login_required
