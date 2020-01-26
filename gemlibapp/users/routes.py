@@ -7,7 +7,6 @@ from flask_login import login_user, current_user, logout_user, login_required
 from gemlibapp import db, bcrypt, login_manager
 from gemlibapp.models import BookList, User, credentials
 from gemlibapp.users.forms import LoginForm
-from gemlibapp.users.utils import send_reset_email
 
 users = Blueprint('users', __name__)
 
