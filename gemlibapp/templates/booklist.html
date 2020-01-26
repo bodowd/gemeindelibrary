@@ -1,12 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="content-section">
-    <div class="media">
-        <div class="media-body">
-            <h2 class="account-heading">{{ current_user.username}}</h2>
-            <p class="text-secondary">{{ current_user.email }}</p>
-        </div>
-    </div>
     <div class="media-body">
         <p>Add to your booklist here.</p>
         <p>Please submit a .xlsx or tab-delimited (because book titles can contain commas) .txt file containing only a column of book titles with a header row.</p>
