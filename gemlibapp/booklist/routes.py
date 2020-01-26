@@ -66,10 +66,6 @@ def upload_booklist():
     return render_template('booklist.html', title='Book List', form=form)
 
 
-@booklist.route('/update_booklist', methods=['GET', 'POST'])
-@login_required
-def update_booklist():
-    pass
 
 
 #     """
