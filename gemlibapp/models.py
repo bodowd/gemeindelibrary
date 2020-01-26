@@ -12,6 +12,7 @@ During development, if you need to recreate database...
 >>> db.create_all(app=create_app())
 '''
 
+# TODO: add migration
 
 class User(UserMixin):
     pass
@@ -51,6 +52,7 @@ class BookStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # booklist.id is lower case because we are referencing the table.column name
     book_id = db.Column(db.Integer, db.ForeignKey('book_list.id'), nullable=False)
+    backup_title = db.Column(db.String(100), nullable=False)
     available = db.Column(db.Boolean, nullable=False)
     borrower = db.Column(db.String(100), nullable=True)
     # unique=False person may borrow multiple books
