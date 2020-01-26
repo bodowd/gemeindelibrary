@@ -45,3 +45,9 @@ class DeleteBookListForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     double_check = BooleanField('Are you sure you want to delete your booklist?', validators=[DataRequired()])
     submit = SubmitField('Submit')
+
+
+class DeleteABookForm(FlaskForm):
+    title = SelectField('Title', coerce=str)
+    submit = SubmitField('Delete Book')
+
