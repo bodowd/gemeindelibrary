@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import SubmitField, SelectField, StringField
+from wtforms import SubmitField, SelectField, StringField, BooleanField, PasswordField
 from wtforms.validators import DataRequired, Email
 
 
@@ -38,3 +38,10 @@ class CheckoutBookForm(FlaskForm):
 class ReturnBookForm(FlaskForm):
    title = SelectField('Title', coerce=str)
    submit = SubmitField('Return Book')
+
+
+class DeleteBookListForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    double_check = BooleanField('Are you sure you want to delete your booklist?', validators=[DataRequired()])
+    submit = SubmitField('Submit')
