@@ -4,7 +4,7 @@ from flask_login import current_user, login_required
 from flask_mail import Message
 from gemlibapp import db, bcrypt, mail
 from gemlibapp.models import BookList, BookStatus, credentials
-from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, UpdateBookListForm
+from gemlibapp.booklist.forms import BookListForm, CheckoutBookForm, ReturnBookForm, DeleteBookListForm
 from gemlibapp.booklist.utils import booklist_to_df, validate_standardize, booklist2df
 from gemlibapp.config import Config
 import pandas as pd
@@ -19,11 +19,14 @@ def delete_booklist():
     '''removes existing booklist !!!'''
 
     # TODO: add password verification as safety
-    BookList.query.delete()
+    form = DeleteBookListForm()
+    if form.validate_on_submit():
+        BookList.query.delete()
 
-    db.session.commit()
-    flash('Your book list has been deleted.', 'success')
-    return redirect(url_for('main.home'))
+        db.session.commit()
+        flash('Your book list has been deleted.', 'success')
+        return redirect(url_for('main.home'))
+    return render_template('delete_booklist.html', title='Delete Booklist', form=form)
 
 
 # ### JUST FOR DEV!!
@@ -64,38 +67,6 @@ def upload_booklist():
         flash('Your book list has been updated!', 'success')
         return redirect(url_for('main.home'))
     return render_template('booklist.html', title='Book List', form=form)
-
-
-
-
-#     """
-#     Updates the booklist without losing information on books that are already checked out
-#     """
-#     # currently new_booklist resets count_available. If an user wants to update their booklist
-#     # without resetting the counts, then this won't work.
-#     # Perhaps a solution is to have a New booklist option, this one, and an Update BookList
-#     # page. In the update BookList page the database should just carry over from count_available
-#     form = UpdateBookListForm()
-#     if form.validate_on_submit():
-#         df = booklist_to_df(form.booklist_file)
-#         df = validate_standardize(df, form)
-#         if df is None:
-#             return render_template('update_booklist.html', title='Book List', form=form)
-#         for _, row in df.iterrows():
-#             title = row['Title']
-#             check_if_exists = BookList.query.filter_by(title=title).first()  # returns Books object or None if not found
-#             # if the book is not already in the database, add it
-#             if check_if_exists is None:
-#                 booklist_to_db = BookList(title=title,
-#                                           owner=current_user,
-#                                           available=True)
-#                 db.session.add(booklist_to_db)
-#                 db.session.commit()
-#             # elif check_if_exists.title == title:
-#
-#         flash('Your book list has been updated!', 'success')
-#         return redirect(url_for('main.home'))
-#     return render_template('update_booklist.html', title='Upload Booklist', form=form)
 
 
 @booklist.route('/booklist', methods=['GET'])
@@ -139,7 +110,9 @@ def checkout_book():
 
     # Drop down menu
     # needs to receive a tuple. I don't know why.
-    form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status]
+    form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status if
+                          BookList.query.filter_by(id=book.id).first() is not None]
+    # needs to check if we have a status stored but we don't have it in the booklist
 
     if form.validate_on_submit():
         # get the object from booklist
@@ -168,7 +141,9 @@ def return_book():
     form = ReturnBookForm()
 
     # only populate the form with Books that are available=False
-    form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status]
+    form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status if
+                          BookList.query.filter_by(id=book.id).first() is not None]
+    # needs to check if we have a status stored but we don't have it in the booklist
 
     if form.validate_on_submit():
         # get the object from booklist
