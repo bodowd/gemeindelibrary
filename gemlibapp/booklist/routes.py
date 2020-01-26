@@ -61,7 +61,7 @@ def upload_booklist():
             _book = BookList.query.filter_by(title=title).first()
             book_status = BookStatus.query.filter_by(book_id=_book.id).first()
             if book_status is None:
-                _status = BookStatus(book_id=_book.id, available=True, borrower=None, back2booklist=_book)
+                _status = BookStatus(book_id=_book.id, backup_title=title, available=True, borrower=None, back2booklist=_book)
                 db.session.add(_status)
         db.session.commit()
         flash('Your book list has been updated!', 'success')
@@ -95,6 +95,15 @@ def view_booklist():
         booklist_dict['Date Due'].append(book_status.date_due)
 
     df = pd.DataFrame.from_dict(booklist_dict)
+
+    _status = BookStatus.query.filter_by(available=False).all()
+
+    for book in _status:
+        _ = BookList.query.filter_by(id=book.id).first()
+        if _ is None:
+            print('HWEFO')
+            flash(
+                f'{book.backup_title} is still checked out but no longer in your booklist. Pease add it back in and resolve the conflict.', 'danger')
 
     return render_template('view_booklist.html', title='Home',
                            tables=[df.to_html(classes='data', header='true')])
