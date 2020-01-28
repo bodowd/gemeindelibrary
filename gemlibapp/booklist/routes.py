@@ -18,14 +18,16 @@ booklist = Blueprint('booklist', __name__)
 def delete_booklist():
     '''removes existing booklist !!!'''
 
-    # TODO: add password verification as safety
     form = DeleteBookListForm()
     if form.validate_on_submit():
-        BookList.query.delete()
+        if  form.password.data == credentials['password']:
+            BookList.query.delete()
 
-        db.session.commit()
-        flash('Your book list has been deleted.', 'success')
-        return redirect(url_for('main.home'))
+            db.session.commit()
+            flash('Your book list has been deleted.', 'success')
+            return redirect(url_for('main.home'))
+        else:
+            flash('Invalid credentials', 'danger')
     return render_template('delete_booklist.html', title='Delete Booklist', form=form)
 
 
