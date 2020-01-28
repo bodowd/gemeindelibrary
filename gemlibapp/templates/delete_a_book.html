@@ -8,6 +8,10 @@
     <div class="form-group">
         {{ form.title }}
     </div>
+    <div class="form-check">
+        {{ form.double_check(class="form-check-input") }}
+        {{ form.double_check.label(class="form-check-label") }}
+    </div>
     <div class="form-group">
         {{ form.submit(class="btn btn-outline-info") }}
     </div>
