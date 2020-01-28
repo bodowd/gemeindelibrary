@@ -88,7 +88,7 @@ def view_booklist():
     booklist_dict['Date Due'] = []
 
     for book in booklist:
-        book_status = BookStatus.query.filter_by(book_id=book.id).first()
+        book_status = BookStatus.query.filter_by(backup_title=book.title).first()
         booklist_dict['Title'].append(book.title)
         booklist_dict['Available'].append(book_status.available)
         booklist_dict['Date Borrowed'].append(book_status.date_borrowed)
@@ -100,11 +100,11 @@ def view_booklist():
 
     _status = BookStatus.query.filter_by(available=False).all()
 
-    for book in _status:
-        _ = BookList.query.filter_by(id=book.id).first()
+    for book_status in _status:
+        _ = BookList.query.filter_by(title=book_status.backup_title).first()
         if _ is None:
             flash(
-                f'{book.backup_title} is still checked out but no longer in your booklist. Pease add it back in and resolve the conflict.', 'danger')
+                f'{book_status.backup_title} is still checked out but no longer in your booklist. Pease add it back in and resolve the conflict.', 'danger')
 
     return render_template('view_booklist.html', title='Home',
                            tables=[df.to_html(classes='data', header='true')])
