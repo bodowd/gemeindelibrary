@@ -63,7 +63,7 @@ def upload_booklist():
             _book = BookList.query.filter_by(title=title).first()
             book_status = BookStatus.query.filter_by(backup_title=_book.title).first()
             if book_status is None:
-                _status = BookStatus(book_id=_book.id, backup_title=title, available=True, borrower=None, back2booklist=_book)
+                _status = BookStatus(book_id=_book.id, backup_title=title, available=True, borrower=None)
                 db.session.add(_status)
         db.session.commit()
         flash('Your book list has been updated!', 'success')
@@ -148,9 +148,8 @@ def checkout_book():
 
     if form.validate_on_submit():
         # get the object from booklist
-        title = BookList.query.filter_by(title=form.title.data).first_or_404()
-        # pass that object to status via the backref back2booklist to check it out
-        book = BookStatus.query.filter_by(back2booklist=title).first_or_404()
+        _booklist = BookList.query.filter_by(title=form.title.data).first_or_404()
+        book = BookStatus.query.filter_by(backup_title=_booklist.title).first_or_404()
         book.borrower = form.borrower.data
         book.borrower_email = form.borrower_email.data
         book.available = False
@@ -158,7 +157,7 @@ def checkout_book():
         book.date_due = book.date_borrowed + timedelta(days=30)
         db.session.commit()
 
-        flash(f'{book.back2booklist.title} has been checked out by {book.borrower}!', 'success')
+        flash(f'{book.backup_title} has been checked out by {book.borrower}!', 'success')
         return redirect(url_for('main.home'))
 
     return render_template('checkout_book.html', title='Checkout Book', form=form)
@@ -179,9 +178,8 @@ def return_book():
 
     if form.validate_on_submit():
         # get the object from booklist
-        title = BookList.query.filter_by(title=form.title.data).first_or_404()
-        # pass that object to status via the backref back2booklist to check it out
-        book = BookStatus.query.filter_by(back2booklist=title).first_or_404()
+        _booklist = BookList.query.filter_by(title=form.title.data).first_or_404()
+        book = BookStatus.query.filter_by(backup_title=_booklist.title).first_or_404()
         book.borrower = None
         book.borrower_email = None
         book.available = True
@@ -189,7 +187,7 @@ def return_book():
         book.date_due = None
         db.session.commit()
 
-        flash(f'{book.back2booklist.title} has been returned.', 'success')
+        flash(f'{book.backup_title} has been returned.', 'success')
         return redirect(url_for('main.home'))
 
     return render_template('return_book.html', title='Book Return', form=form)

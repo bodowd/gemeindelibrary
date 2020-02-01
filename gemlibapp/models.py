@@ -40,9 +40,6 @@ class BookList(db.Model):
      """
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    # BookStatus is capitalized because we are referencing the BookStatus class not a table
-    # booklist.bookstatus should return the booklist -- links to BookList table
-    bookstatus = db.relationship('BookStatus', backref='back2booklist', lazy=True)
 
     def __repr__(self):
         return f"{self.__dict__}"
