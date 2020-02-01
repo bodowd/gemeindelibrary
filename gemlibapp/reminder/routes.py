@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, url_for, flash, redirect, abort, request
 from flask_login import current_user, login_required
-from gemlibapp.models import User, Reminder, BookList
+from gemlibapp.models import User, Reminder, BookList, credentials
 from gemlibapp.reminder.forms import ReminderEmailForm
 from gemlibapp import db
 from datetime import datetime, timedelta
@@ -57,5 +57,8 @@ def daily_check():
         subject = _reminder.subject
         message = _reminder.message
         send_reminder_email(book.borrower_email, subject=subject, message=message)
+        # send a confirmation email to admin email address
+        send_reminder_email(credentials['email'], subject='Confirmation of reminder email sent', message=f'A reminder email was sent to {book.borrower_email}.')
+
     return redirect(url_for('main.home'))
 
