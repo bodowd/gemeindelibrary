@@ -142,8 +142,8 @@ def checkout_book():
 
     # Drop down menu
     # needs to receive a tuple. I don't know why.
-    form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status if
-                          BookList.query.filter_by(id=book.id).first() is not None]
+    form.title.choices = [(book.backup_title, book.backup_title) for book in _status if
+                          BookList.query.filter_by(title=book.backup_title).first() is not None]
     # needs to check if we have a status stored but we don't have it in the booklist
 
     if form.validate_on_submit():
@@ -174,7 +174,7 @@ def return_book():
 
     # only populate the form with Books that are available=False
     form.title.choices = [(book.back2booklist.title, book.back2booklist.title) for book in _status if
-                          BookList.query.filter_by(id=book.id).first() is not None]
+                          BookList.query.filter_by(title=book.backup_title).first() is not None]
     # needs to check if we have a status stored but we don't have it in the booklist
 
     if form.validate_on_submit():
